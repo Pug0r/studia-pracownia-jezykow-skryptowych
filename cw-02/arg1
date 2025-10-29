@@ -1,0 +1,77 @@
+#!/bin/bash
+# Aleksander Pugowski
+
+# Flagi 
+q_present_flag=false
+filename_missing_flag=false
+# Strukturki na dane
+declare -a options # -a to -array
+declare i_opt_arg
+declare o_opt_arg
+
+addToOptionsIfUnique() {
+    local element="$1"
+    if [[ ! " ${options[@]} " =~ " $element " ]]; then
+        options+=("$element")
+    fi
+}
+
+while getopts ":qi:o:abcdefghjklmnprstuvwxyz" arg; do # ':' pierwsza dla uciszenia errorow, potem zeby wczytal argument
+    case "${arg}" in  # przy silent error handling, jak brakuje argumentu dla opcji to ustawia arg na ":" z jakiegos powodu
+        q)
+            q_present_flag=true
+            break
+            ;;
+        i)
+            addToOptionsIfUnique "$arg"
+            i_opt_arg="$OPTARG"
+            if [[ "$OPTARG" == -* ]]; then # to nie moze byc opcja tylko slowo
+                filename_missing_flag=true
+            fi
+            ;;
+        o) 
+            addToOptionsIfUnique "$arg"
+            o_opt_arg="$OPTARG"
+            if [[ "$OPTARG" == -* ]]; then
+                filename_missing_flag=true
+            fi
+            ;;
+        :)
+            filename_missing_flag=true
+            ;;
+        *) 
+            addToOptionsIfUnique "$arg"
+            ;;
+    esac 
+done
+
+if [[ "$q_present_flag" = true ]]; then
+    echo "Unsupported option: -q"
+    exit 1
+elif [[ "$filename_missing_flag" = true ]]; then
+    echo "-i -o options require a filename"
+    exit 1
+fi
+
+shift $((OPTIND - 1)) # Przesun przetworzone opcje, tak zeby argumenty zachowywaly sie ladnie
+
+for option in $(printf "%s\n" "${options[@]}" | sort) # array expansion syntax 
+do 
+    if [[ "$option" = "i" ]]; then ## -eq nie dziala dla stringow, tylko dla intow
+        echo "-$option present and set to \"$i_opt_arg\""
+    elif [[ "$option" = "o" ]]; then
+        echo "-$option present and set to \"$o_opt_arg\""
+    else
+        echo "-$option present"
+    fi 
+done
+
+if [[ $# -gt 0 ]]; then
+ echo "Arguments are:"
+fi
+
+arg_print_number=1
+for arg in "$@"; do
+    echo "\$$arg_print_number=$arg"
+    ((arg_print_number++))
+done

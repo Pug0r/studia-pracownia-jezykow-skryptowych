@@ -1,0 +1,11 @@
+#!/bin/bash
+# Aleksander Pugowski
+
+input=$(getopt -o ':qi:o:abcdefghjklmnprstuvwxyz' --long 'help' -- "$@") # troche useless, porzadkuje zmienne i pozwala na opcje long, ale nie POSIXowe i generalnie nie powinno sie tego uzywac
+eval set -- "$input" # zmien argumenty dla programu na takie w ladnej kolejnosci
+
+if [[ "$input" =~ "--help" ]]; then
+    echo "help"
+else
+    ./arg1 "$@"
+fi
